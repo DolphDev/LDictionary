@@ -34,7 +34,7 @@ class Table(object):
         elif isinstance(v, tuple):
             return (multiple_index(x, v) for x in self.rows)
         elif isinstance(v, FunctionType):
-            return Selection(_index_function_gen(self, v), self.__apimother__)
+            return Table(_index_function_gen(self, v), self.__apimother__)
         else:
             raise TypeError(msg.getitemmsg.format(type(v)))
 
