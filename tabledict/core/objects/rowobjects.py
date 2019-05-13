@@ -179,7 +179,7 @@ class Row(dict):
         """
         pass
 
-    def get_key(self, column, accept_small_names=True):
+    def getcolumn(self, column, accept_small_names=True):
         """Get a cell by the orginal column name
 
         :param column: The column name. Can only be long form if accept_small_names == False
@@ -198,7 +198,7 @@ class Row(dict):
         else:
             raise ValueError("'{}'. Make sure the shorterned columns name have no collisions".format(column))
 
-    def set_key(self, column, value, accept_small_names=True):
+    def setcolumn(self, column, value, accept_small_names=True):
         """Set a cell by the orginal column name
 
             :param column: The column name. Can be both long and short form.
@@ -218,7 +218,7 @@ class Row(dict):
         else:
             raise ValueError("'{}'. Make sure the shorterned columns name have no collisions".format(column))
 
-    def del_key(self, column, accept_small_names=True):
+    def delcolumn(self, column, accept_small_names=True):
         """Delete a cell by the orginal column name
 
         :param column: The column name. Can be both long and short form.

@@ -12,7 +12,7 @@ class MainTable(Table):
     to delete/add rows in a supported way"""
 
     __slots__ = ["__canrefrencecolumn__",
-                 "__keys__", "__keymap__",
+                 "__columns__", "__columnmap__",
                  "__rows__", "__apimother__", "__rowcls__"]
 
     def __init__(self, csvdict=None, keys=None, 
@@ -23,8 +23,8 @@ class MainTable(Table):
         # This is used to be consistent with child selections 
         # and methods
         self.__apimother__ = self
-        self.__keys__ = keys
-        self.__keymap__ = {}
+        self.__columns__ = keys
+        self.__columnmap__ = {}
         try:
             # TypeError may be triggered by issubclass or
             # by else condition
@@ -37,8 +37,8 @@ class MainTable(Table):
                 msg.badcls.format(Row, cls if isinstance(cls, type) else type(cls)))
 
         if keys:
-            self.__keymap__.update(
-                column_crunch_repeat(self.__keys__))
+            self.__columnmap__.update(
+                column_crunch_repeat(self.__columns__))
         else:
             rebuild_column_map = True
 
@@ -47,14 +47,14 @@ class MainTable(Table):
         if csvdict:
             if custom_columns:
                 self.__rows__ = list(
-                    parser(csvdict, cls, self.__keymap__, typetransfer, columns, *args, **kwargs))
+                    parser(csvdict, cls, self.__columnmap__, typetransfer, columns, *args, **kwargs))
             else:
                 self.__rows__ = list(
-                    parser(csvdict, cls, self.__keymap__, typetransfer, None, *args, **kwargs))
+                    parser(csvdict, cls, self.__columnmap__, typetransfer, None, *args, **kwargs))
             if rebuild_column_map:
                 # This catches mistakes if .load() is used instead of safe_load() / opencsv()
                 try:
-                    self.__keymap__.update(
+                    self.__columnmap__.update(
                         column_crunch_repeat(self.__rows__[0].keys()))
                 except AttributeError:
                     # Errornous Headers - Usually caused by single column
@@ -66,10 +66,10 @@ class MainTable(Table):
 
         else:
             self.__rows__ = list()
-        if not self.__keys__:
-            self.__keys__ = list()
+        if not self.__columns__:
+            self.__columns__ = list()
         elif not isinstance(self.columns, list):
-            self.__keys__ = list(self.__keys__) 
+            self.__columns__ = list(self.__columns__) 
 
     @property
     def rows(self):
@@ -77,13 +77,13 @@ class MainTable(Table):
 
     @property
     def columns(self):
-        return self.__keys__
+        return self.__columns__
         
     def addrow(self, cls=None, **kwargs):
         try:
             if cls is None:
                 cls = self.__rowcls__
-            r = parser_addrow(self.__keys__, cls, self.__keymap__)
+            r = parser_addrow(self.__columns__, cls, self.__columnmap__)
             self.__rows__.append(r)
             if kwargs:
                 for k, v in kwargs.items():
@@ -102,7 +102,7 @@ class MainTable(Table):
                     raise TypeError("{} was not a subclass of {}".format(cls.__name__, Row.__name__))
             raise exc
 
-    def add_key(self, columnname, columndata="", clear=True):
+    def addcolumn(self, columnname, columndata="", clear=True):
         """Adds a column
         :param columnname: Name of the column to add.
         :param columndata: The default value of the new column.
@@ -124,12 +124,12 @@ class MainTable(Table):
             else:
                 for row in self.rows:
                     row._addcolumns(columnname, columndata)
-            self.__keys__ += (columnname,)
-            self.__keymap__.clear()
-            self.__keymap__.update(column_crunch_repeat(self.__keys__))
+            self.__columns__ += (columnname,)
+            self.__columnmap__.clear()
+            self.__columnmap__.update(column_crunch_repeat(self.__columns__))
         return self
 
-    def del_key(self, columnname):
+    def delcolumn(self, columnname):
         with column_manipulation_lock:
 
             if not (columnname in self.columns):
@@ -140,12 +140,12 @@ class MainTable(Table):
             for row in self.rows:
                 row._delcolumns(columnname)
 
-            self.__keys__ = tuple(
+            self.__columns__ = tuple(
                 column  for column in self.columns if column != columnname)
-            self.__keymap__.clear()
-            self.__keymap__.update(column_crunch_repeat(self.__keys__))
+            self.__columnmap__.clear()
+            self.__columnmap__.update(column_crunch_repeat(self.__columns__))
 
-    def rename_key(self, old_column, new_column):
+    def rename_column(self, old_column, new_column):
         with column_manipulation_lock:
             if old_column == new_column:
                 raise ValueError("Rename is identical to original")
@@ -161,11 +161,11 @@ class MainTable(Table):
 
             for row in self.rows:
                 row._rename_columns(old_column, new_column)
-            _transfer_ = {c: new_column if c == old_column else c for c in self.__keys__}
-            self.__keys__ = tuple(
+            _transfer_ = {c: new_column if c == old_column else c for c in self.__columns__}
+            self.__columns__ = tuple(
                 _transfer_.get(column) for column in self.columns)
-            self.__keymap__.clear()
-            self.__keymap__.update(column_crunch_repeat(self.__keys__))
+            self.__columnmap__.clear()
+            self.__columnmap__.update(column_crunch_repeat(self.__columns__))
 
     def __delitem__(self, v):
         del self.__rows__[v]

@@ -11,10 +11,10 @@ NonHashMergeLock = RLock()
 
 class Table(object):
 
-    __slots__ = ["__row__", "__apimother__"]
+    __slots__ = ["__rows__", "__apimother__"]
 
     def __init__(self, selection, api_mother):
-        self.__row__ = (selection)
+        self.__rows__ = (selection)
         self.__apimother__ = api_mother
 
     def __add__(self, sel):
@@ -40,11 +40,11 @@ class Table(object):
 
     @property
     def rows(self):
-        if not isinstance(self.__row__, tuple):
+        if not isinstance(self.__rows__, tuple):
             self.process()
-            return self.__row__
+            return self.__rows__
         else:
-            return self.__row__
+            return self.__rows__
 
     def process(self):
         """Processes the Selection, then returns it
@@ -54,9 +54,9 @@ class Table(object):
             same parent selection
 
         """
-        if not isinstance(self.__row__, tuple):
+        if not isinstance(self.__rows__, tuple):
             with SelectionLock:
-                self.__row__ = tuple(self.__row__)
+                self.__rows__ = tuple(self.__rows__)
         return self
 
     @property
@@ -68,15 +68,15 @@ class Table(object):
         return self.__apimother__.__columnsmap__
 
     @property
-    def key_mapping(self):
+    def column_mapping(self):
         return {v:k for k,v in self.__columnsmap__.items()}
 
     @property
-    def key_attributes(self):
+    def column_attributes(self):
         return list(self.__columnsmap__.keys())
 
     @property
-    def add_key(self):
+    def addcolumn(self):
         """Adds a column
         :param columnname: Name of the column to add.
         :param columndata: The default value of the new column.
@@ -94,17 +94,17 @@ class Table(object):
         return self.__apimother__.addcolumn
 
     @property
-    def del_key(self):
+    def delcolumn(self):
         return self.__apimother__.delcolumn
 
     @property
-    def rename_key(self):
+    def rename_column(self):
         return self.__apimother__.rename_column
     
 
     def transform(self, key, func):
         for row in self.rows:
-            row.set_key(key, func(row.get_key(key)))
+            row.setcolumn(key, func(row.get_key(key)))
         return self
 
     # def _merge(self, args):
@@ -288,7 +288,7 @@ class Table(object):
 
         """
         if not selectionfirstarg_data and not kwargs:
-            return Selection(self.__row__, self.__apimother__)
+            return Selection(self.__rows__, self.__apimother__)
         func = generate_func(selectionfirstarg_data, kwargs)
         return self[func]
 
@@ -302,7 +302,7 @@ class Table(object):
             Uses Lazy Loading, doesn't process till needed.
         """
         if not selectionfirstarg_data and not kwargs:
-            return Selection(self.__row__, self.__apimother__)
+            return Selection(self.__rows__, self.__apimother__)
         func = generate_func_any(selectionfirstarg_data, kwargs)
         return self[func]
 
@@ -319,7 +319,7 @@ class Table(object):
 
         """
         if not selectionfirstarg_data and not kwargs:
-            return Selection(self.__row__, self.__apimother__)
+            return Selection(self.__rows__, self.__apimother__)
         func = generate_func(selectionfirstarg_data, kwargs)
         return self._safe_select(func)
 
@@ -336,7 +336,7 @@ class Table(object):
                 before the selected is processed.
         """
         if not selectionfirstarg_data and not kwargs:
-            return Selection(self.__row__, self.__apimother__)
+            return Selection(self.__rows__, self.__apimother__)
         func = generate_func_any(selectionfirstarg_data, kwargs)
         return self._safe_select(func)
 
@@ -364,7 +364,7 @@ class Table(object):
     #     if soft:
     #         return self.merge(self)
     #     else:
-    #         self.__row__ = self.merge(self).rows
+    #         self.__rows__ = self.merge(self).rows
         
 
     def unique(self, *args):
